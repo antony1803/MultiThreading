@@ -47,4 +47,6 @@ public class TruckBase {
         return null;
     }
 
+    public void releaseTerminal(){}
+
 }
