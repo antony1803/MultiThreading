@@ -9,11 +9,9 @@ import org.apache.logging.log4j.Logger;
 public class TruckTerminal {
     private static final Logger logger = LogManager.getLogger();
     private final int id;
-    private final TruckBase base;
 
-    public TruckTerminal(int newId, TruckBase newBase){
+    public TruckTerminal(int newId){
         id = newId;
-        base = newBase;
     }
 
     public void load(Truck truck) throws CustomException {
