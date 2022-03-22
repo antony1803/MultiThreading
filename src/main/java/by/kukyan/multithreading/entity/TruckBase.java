@@ -20,12 +20,12 @@ public class TruckBase {
     private static TruckBase instance;
     private ReentrantLock lock = new ReentrantLock();
     private Deque<Condition> turn = new ArrayDeque<>();
-    private static AtomicBoolean permission = new AtomicBoolean(true);
+    private static AtomicBoolean isCreated = new AtomicBoolean(false);
     private static ReentrantLock instanceLock = new ReentrantLock();
 
 
     public static TruckBase getInstance() throws CustomException {
-        if(permission.get()){
+        if(isCreated.get()){
             try{
                 instanceLock.lock();
                 if(instance == null){
