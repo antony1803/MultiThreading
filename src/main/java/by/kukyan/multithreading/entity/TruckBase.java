@@ -15,7 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TruckBase {
     private static final Logger logger = LogManager.getLogger();
     private static final int BASE_TERMINAL_SIZE = 4;
-    private static final int MAX_CAPACITY_OF_THE_BASE = 200;
+    private static final int MAX_CAPACITY_OF_THE_BASE_IN_TRUCKS = 200;
     private static final double FILING = 0.5;
     private static final double EMPTINESS = 0.1;
     private static TruckBase instance;
