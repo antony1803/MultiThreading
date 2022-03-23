@@ -39,7 +39,7 @@ public class LogisticsBase {
         numberOfTrucksCurrentlyWaitingOnBase = 0;
     }
 
-    public static LogisticsBase getInstance() throws CustomException {
+    public static LogisticsBase getInstance() {
         if(isCreated.get()){
             try{
                 instanceLock.lock();
@@ -55,7 +55,7 @@ public class LogisticsBase {
         return instance;
     }
 
-    public void addTruck() throws CustomException{
+    public void addTruck(){
         lock.lock();
         try {
             while (MAX_CAPACITY_OF_THE_BASE_IN_TRUCKS > numberOfTrucksCurrentlyWaitingOnBase){
