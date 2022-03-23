@@ -27,13 +27,16 @@ public class LogisticsBase {
     private static ReentrantLock instanceLock = new ReentrantLock();
     private Condition waitToUploadCargo = lock.newCondition();
     private Condition waitToUnloadCargo = lock.newCondition();
+    private Condition waitToGoIntoTheBase = lock.newCondition();
     private int availableCargo;
+    private int numberOfTrucksCurrentlyWaitingOnBase;
 
     private LogisticsBase(){
         for(int i = 0; i < BASE_TERMINAL_SIZE; i++){
             freeTerminals.add(new TruckTerminal(TerminalIdGenerator.getId()));
         }
         availableCargo = 10000;
+        numberOfTrucksCurrentlyWaitingOnBase = 0;
     }
 
     public static LogisticsBase getInstance() throws CustomException {
@@ -50,6 +53,19 @@ public class LogisticsBase {
             }
         }
         return instance;
+    }
+
+    public void addTruck() throws CustomException{
+        lock.lock();
+        try {
+            while (MAX_CAPACITY_OF_THE_BASE_IN_TRUCKS > numberOfTrucksCurrentlyWaitingOnBase){
+                waitToGoIntoTheBase.await();
+            }
+        } catch (InterruptedException e) {
+            logger.error("error while waiting till base can be uploaded with some cargo", e);
+        }finally {
+            lock.unlock();
+        }
     }
 
     public TruckTerminal startLoading(Truck truck){
