@@ -24,9 +24,16 @@ public class TruckTerminal {
             Thread.currentThread().interrupt();
             throw new CustomException("error while waiting for full load", e);
         }
+        LogisticsBase base = LogisticsBase.getInstance();
         if(truck.isForUploading()){
-            LogisticsBase base = LogisticsBase.getInstance();
+            base.checkCargoLeftOnBase();
             base.startLoading(truck);
+            base.unloadCargoOnBase(truck.getMaxCapacity() - truck.getCargoSize());
+        }
+        else {
+            base.checkCargoLeftOnBase();
+            base.startLoading(truck);
+            base.uploadCargoOnBase(truck.getCargoSize());
         }
         truck.setCargoSize(truck.isForUploading() ? truck.getMaxCapacity() : 0);
         truck.setState(TruckState.FINISHED);

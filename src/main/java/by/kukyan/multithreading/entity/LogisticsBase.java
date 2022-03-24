@@ -21,22 +21,24 @@ public class LogisticsBase {
     private static final double NEED_NEW_CARGO = 0.1;
     private static LogisticsBase instance;
     private ReentrantLock lock = new ReentrantLock();
+    private Deque<Truck> turnInside = new ArrayDeque<>();
+    private Deque<Truck> turnOutside = new ArrayDeque<>();
     private Deque<Condition> sequence = new ArrayDeque<>();
     private Deque<TruckTerminal> freeTerminals = new ArrayDeque<>(BASE_TERMINAL_SIZE);
     private static AtomicBoolean isCreated = new AtomicBoolean(false);
     private static ReentrantLock instanceLock = new ReentrantLock();
-    private Condition waitToUploadCargo = lock.newCondition();
-    private Condition waitToUnloadCargo = lock.newCondition();
-    private Condition waitToGoIntoTheBase = lock.newCondition();
+    private ReentrantLock cargoLock = new ReentrantLock();
+    private ReentrantLock truckLock = new ReentrantLock();
+    private Condition waitToUploadCargo = cargoLock.newCondition();
+    private Condition waitToUnloadCargo = cargoLock.newCondition();
+    private Condition waitToGoIntoTheBase = truckLock.newCondition();
     private int availableCargo;
-    private int numberOfTrucksCurrentlyWaitingOnBase;
 
     private LogisticsBase(){
         for(int i = 0; i < BASE_TERMINAL_SIZE; i++){
             freeTerminals.add(new TruckTerminal(TerminalIdGenerator.getId()));
         }
         availableCargo = 10000;
-        numberOfTrucksCurrentlyWaitingOnBase = 0;
     }
 
     public static LogisticsBase getInstance() {
@@ -55,16 +57,16 @@ public class LogisticsBase {
         return instance;
     }
 
-    public void addTruck(){
-        lock.lock();
+    public void checkTrucksTurn(){
+        truckLock.lock();
         try {
-            while (MAX_CAPACITY_OF_THE_BASE_IN_TRUCKS > numberOfTrucksCurrentlyWaitingOnBase){
+            while (MAX_CAPACITY_OF_THE_BASE_IN_TRUCKS <= turnInside.size()){
                 waitToGoIntoTheBase.await();
             }
         } catch (InterruptedException e) {
             logger.error("error while waiting till base can be uploaded with some cargo", e);
         }finally {
-            lock.unlock();
+            truckLock.unlock();
         }
     }
 
@@ -102,7 +104,7 @@ public class LogisticsBase {
     }
 
     public void checkCargoLeftOnBase(){
-        lock.lock();
+        cargoLock.lock();
         try {
             if(availableCargo > NEED_SOME_SPACE * MAX_CAPACITY_CARGO){
                 availableCargo *= 0.8;
@@ -111,12 +113,12 @@ public class LogisticsBase {
                 availableCargo += MAX_CAPACITY_CARGO * 0.2;
             }
         }finally {
-            lock.unlock();
+            cargoLock.unlock();
         }
     }
 
     public void uploadCargoOnBase(int cargo){
-        lock.lock();
+        cargoLock.lock();
         try {
             while (availableCargo + cargo > MAX_CAPACITY_CARGO){
                 waitToUploadCargo.await();
@@ -124,12 +126,12 @@ public class LogisticsBase {
         } catch (InterruptedException e) {
             logger.error("error while waiting till base can be uploaded with some cargo", e);
         }finally {
-            lock.unlock();
+            cargoLock.unlock();
         }
     }
 
     public void unloadCargoOnBase(int cargo){
-        lock.lock();
+        cargoLock.lock();
         try {
             while (availableCargo - cargo < 0){
                 waitToUnloadCargo.await();
@@ -137,7 +139,7 @@ public class LogisticsBase {
         } catch (InterruptedException e) {
             logger.error("error while waiting till base have cargo needed to upload truck", e);
         }finally {
-            lock.unlock();
+            cargoLock.unlock();
         }
     }
 
