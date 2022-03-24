@@ -18,7 +18,7 @@ public class TruckTerminal {
     public void uploadUnload(Truck truck) throws CustomException {
         truck.setState(TruckState.LOADING);
         try {
-            TimeUnit.MILLISECONDS.sleep(1200);
+            TimeUnit.MILLISECONDS.sleep(truck.isForUploading() ? 12 * (truck.getMaxCapacity() - truck.getCargoSize()) : 12 * truck.getCargoSize());
         } catch (InterruptedException e) {
             logger.error("error while waiting for full load", e);
             Thread.currentThread().interrupt();
